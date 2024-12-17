@@ -14,6 +14,7 @@ VISITED_COLOUR = "#000000"
 BACKGROUND_COLOUR = "#ffffff"
 STACK_COLOUR = "#ff0000"
 CURRENT_COLOUR = "#00ff00"
+grid_cells = []
 
 
 class Cell:
@@ -84,38 +85,41 @@ def remove_walls(current, next):
         next.walls["top"] = False
 
 
-grid_cells = []
-for row in range(rows):
-    grid_cells.append([Cell(col, row) for col in range(cols)])
+def generate_maze():
+    for row in range(rows):
+        grid_cells.append([Cell(col, row) for col in range(cols)])
 
-current_cell = grid_cells[0][0]
-stack = []
+    current_cell = grid_cells[0][0]
+    stack = []
 
-while True:
-    sc.fill(pygame.Color(BACKGROUND_COLOUR))
+    while True:
+        sc.fill(pygame.Color(BACKGROUND_COLOUR))
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            exit()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exit()
 
-    [cell.draw() for row in grid_cells for cell in row]
-    current_cell.visited = True
-    current_cell.draw_current_cell()
-    for cell in stack:
-        pygame.draw.rect(
-            sc,
-            pygame.Color(STACK_COLOUR),
-            (cell.x * TILE + 2, cell.y * TILE + 2, TILE - 4, TILE - 4),
-        )
+        [cell.draw() for row in grid_cells for cell in row]
+        current_cell.visited = True
+        current_cell.draw_current_cell()
+        for cell in stack:
+            pygame.draw.rect(
+                sc,
+                pygame.Color(STACK_COLOUR),
+                (cell.x * TILE + 2, cell.y * TILE + 2, TILE - 4, TILE - 4),
+            )
 
-    next_cell = current_cell.check_neighbors()
-    if next_cell:
-        next_cell.visited = True
-        stack.append(current_cell)
-        remove_walls(current_cell, next_cell)
-        current_cell = next_cell
-    elif stack:
-        current_cell = stack.pop()
+        next_cell = current_cell.check_neighbors()
+        if next_cell:
+            next_cell.visited = True
+            stack.append(current_cell)
+            remove_walls(current_cell, next_cell)
+            current_cell = next_cell
+        elif stack:
+            current_cell = stack.pop()
 
-    pygame.display.flip()
-    clock.tick(50)
+        pygame.display.flip()
+        clock.tick(1000)
+
+
+generate_maze()
