@@ -1,6 +1,5 @@
 import pygame  # type: ignore
 from random import choice
-from enums import Direction
 import pickle
 
 RES = WIDTH, HEIGHT = 1200, 900
@@ -52,6 +51,7 @@ class Cell:
             return False
         return grid_cells[y][x]
 
+    # Used for maze generation - checks if neighbors are visited
     def check_neighbors(self, grid_cells):
         neighbors = []
         top = self.check_cell(self.x, self.y - 1, grid_cells)
@@ -67,6 +67,22 @@ class Cell:
         if left and not left.visited:
             neighbors.append(left)
         return neighbors
+
+    def check_accessible(self, grid_cells):
+        accessible = []
+        top = self.check_cell(self.x, self.y - 1, grid_cells)
+        right = self.check_cell(self.x + 1, self.y, grid_cells)
+        bottom = self.check_cell(self.x, self.y + 1, grid_cells)
+        left = self.check_cell(self.x - 1, self.y, grid_cells)
+        if top and not self.walls["top"]:
+            accessible.append(top)
+        if right and not self.walls["right"]:
+            accessible.append(right)
+        if bottom and not self.walls["bottom"]:
+            accessible.append(bottom)
+        if left and not self.walls["left"]:
+            accessible.append(left)
+        return accessible
 
 
 def remove_walls(current, next):
@@ -86,6 +102,10 @@ def remove_walls(current, next):
         next.walls["top"] = False
 
 
+def draw_maze(grid_cells):
+    [cell.draw() for row in grid_cells for cell in row]
+
+
 def generate_maze():
     grid_cells = []
     for row in range(rows):
@@ -101,7 +121,7 @@ def generate_maze():
             if event.type == pygame.QUIT:
                 exit()
 
-        [cell.draw() for row in grid_cells for cell in row]
+        draw_maze(grid_cells)
         current_cell.visited = True
         current_cell.draw_current_cell()
         for cell in stack:
@@ -134,4 +154,22 @@ def save_maze(grid_cells, filename):
         pickle.dump(grid_cells, f)
 
 
-generate_maze()
+if __name__ == "__main__":
+    generate_maze()
+
+__all__ = [
+    "Cell",
+    "draw_maze",
+    "save_maze",
+    "RES",
+    "TILE",
+    "cols",
+    "rows",
+    "WALL_COLOUR",
+    "VISITED_COLOUR",
+    "BACKGROUND_COLOUR",
+    "STACK_COLOUR",
+    "CURRENT_COLOUR",
+    "sc",
+    "clock",
+]
