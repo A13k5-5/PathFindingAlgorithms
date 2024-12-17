@@ -46,10 +46,9 @@ class Cell:
             pygame.draw.line(sc, pygame.Color(WALL_COLOUR), (x, y + TILE), (x, y), 3)
 
     def check_cell(self, x, y):
-        find_index = lambda x, y: x + y * cols
         if x < 0 or x > cols - 1 or y < 0 or y > rows - 1:
             return False
-        return grid_cells[find_index(x, y)]
+        return grid_cells[y][x]
 
     def check_neighbors(self):
         neighbors = []
@@ -85,8 +84,11 @@ def remove_walls(current, next):
         next.walls["top"] = False
 
 
-grid_cells = [Cell(col, row) for row in range(rows) for col in range(cols)]
-current_cell = grid_cells[0]
+grid_cells = []
+for row in range(rows):
+    grid_cells.append([Cell(col, row) for col in range(cols)])
+
+current_cell = grid_cells[0][0]
 stack = []
 
 while True:
@@ -96,17 +98,15 @@ while True:
         if event.type == pygame.QUIT:
             exit()
 
-    [cell.draw() for cell in grid_cells]
+    [cell.draw() for row in grid_cells for cell in row]
     current_cell.visited = True
     current_cell.draw_current_cell()
-    [
+    for cell in stack:
         pygame.draw.rect(
             sc,
             pygame.Color(STACK_COLOUR),
             (cell.x * TILE + 2, cell.y * TILE + 2, TILE - 4, TILE - 4),
         )
-        for i, cell in enumerate(stack)
-    ]
 
     next_cell = current_cell.check_neighbors()
     if next_cell:
