@@ -1,5 +1,7 @@
 import pygame  # type: ignore
 from random import choice
+from enums import Direction
+import pickle
 
 RES = WIDTH, HEIGHT = 1200, 900
 TILE = 50
@@ -14,7 +16,6 @@ VISITED_COLOUR = "#000000"
 BACKGROUND_COLOUR = "#ffffff"
 STACK_COLOUR = "#ff0000"
 CURRENT_COLOUR = "#00ff00"
-grid_cells = []
 
 
 class Cell:
@@ -46,17 +47,17 @@ class Cell:
         if self.walls["left"]:
             pygame.draw.line(sc, pygame.Color(WALL_COLOUR), (x, y + TILE), (x, y), 3)
 
-    def check_cell(self, x, y):
+    def check_cell(self, x, y, grid_cells):
         if x < 0 or x > cols - 1 or y < 0 or y > rows - 1:
             return False
         return grid_cells[y][x]
 
-    def check_neighbors(self):
+    def check_neighbors(self, grid_cells):
         neighbors = []
-        top = self.check_cell(self.x, self.y - 1)
-        right = self.check_cell(self.x + 1, self.y)
-        bottom = self.check_cell(self.x, self.y + 1)
-        left = self.check_cell(self.x - 1, self.y)
+        top = self.check_cell(self.x, self.y - 1, grid_cells)
+        right = self.check_cell(self.x + 1, self.y, grid_cells)
+        bottom = self.check_cell(self.x, self.y + 1, grid_cells)
+        left = self.check_cell(self.x - 1, self.y, grid_cells)
         if top and not top.visited:
             neighbors.append(top)
         if right and not right.visited:
@@ -65,7 +66,7 @@ class Cell:
             neighbors.append(bottom)
         if left and not left.visited:
             neighbors.append(left)
-        return choice(neighbors) if neighbors else False
+        return neighbors
 
 
 def remove_walls(current, next):
@@ -86,6 +87,7 @@ def remove_walls(current, next):
 
 
 def generate_maze():
+    grid_cells = []
     for row in range(rows):
         grid_cells.append([Cell(col, row) for col in range(cols)])
 
@@ -109,7 +111,8 @@ def generate_maze():
                 (cell.x * TILE + 2, cell.y * TILE + 2, TILE - 4, TILE - 4),
             )
 
-        next_cell = current_cell.check_neighbors()
+        neighbors = current_cell.check_neighbors(grid_cells)
+        next_cell = choice(neighbors) if neighbors else False
         if next_cell:
             next_cell.visited = True
             stack.append(current_cell)
@@ -117,9 +120,18 @@ def generate_maze():
             current_cell = next_cell
         elif stack:
             current_cell = stack.pop()
+        else:
+            if all(cell.visited for row in grid_cells for cell in row):
+                break
 
         pygame.display.flip()
         clock.tick(1000)
+    save_maze(grid_cells, "maze.pk1")
+
+
+def save_maze(grid_cells, filename):
+    with open(filename, "wb") as f:
+        pickle.dump(grid_cells, f)
 
 
 generate_maze()
